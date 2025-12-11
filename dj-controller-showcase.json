@@ -1,0 +1,13 @@
+{
+  "studentName": "Abatu Dykstra",
+  "projectTitle": "OMNI DJ Controller",
+  "description": "Professional web-based DJ controller with custom code functionality, real-time waveform visualization, and advanced audio processing capabilities.",
+  "projectType": ["Web App", "Audio Application"],
+  "projectUrl": "https://umsi211f2025.github.io/final-project-abluewolverine/apps/dj-controller/",
+  "githubUrl": "https://github.com/umsi211f2025/final-project-abluewolverine",
+  "projectImage": "dj-controller-screenshot.jpg",
+  "tags": ["JavaScript", "Web Audio API", "Canvas", "CSS", "HTML5", "Audio Processing"],
+  "reflections": "Building this DJ controller taught me advanced web audio processing, real-time visualization, and how to create professional-grade music applications in the browser.",
+  "studentPhoto": "wolverine.webp",
+  "videoUrl": "https://youtube.com/watch?v=..."
+}

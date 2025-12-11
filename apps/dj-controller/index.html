@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DJ Controller</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="dj-controller">
+        <header class="dj-header">
+            <div class="header-left">
+                <button id="themeToggle" class="theme-toggle-btn">
+                    <span class="theme-icon">☀️</span>
+                    <span class="theme-text">LIGHT</span>
+                </button>
+            </div>
+            <h1>OMNI MUSIC CONTROLLER</h1>
+            <div class="header-right">
+                <div class="header-controls">
+                    <div class="master-volume-compact">
+                        <label>Master</label>
+                        <input type="range" id="masterVolume" min="0" max="100" value="75" class="volume-slider-compact">
+                        <span class="volume-display-compact">75%</span>
+                    </div>
+                    <button id="codeToggle" class="code-toggle-btn">
+                        <span class="code-icon">⚙️</span>
+                        <span class="code-text">CODE</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Custom Code Panel -->
+        <div id="codePanel" class="code-panel hidden">
+            <div class="code-panel-header">
+                <h3>🔧 OMNI CODE EDITOR: preview/concept</h3>
+                <div class="preset-controls">
+                    <select id="presetSelector" class="preset-selector">
+                        <option value="default">Default Behavior</option>
+                        <option value="custom">Custom Code</option>
+                    </select>
+                    <button id="savePreset" class="preset-btn">Save Preset</button>
+                    <button id="loadPreset" class="preset-btn">Load Presets</button>
+                    <button id="deletePreset" class="preset-btn delete-btn">Delete Preset</button>
+                </div>
+            </div>
+            
+            <div class="code-editor-container">
+                <div class="code-help">
+                    <p><strong>Available Variables:</strong> <code>value</code> (0-100), <code>deckId</code> ('A'|'B'), <code>sliderId</code>, <code>audioContext</code>, <code>audioNode</code></p>
+                    <p><strong>Return:</strong> Modified audio processing or value transformation</p>
+                </div>
+                
+                <div class="slider-function-editor">
+                    <label for="volumeCodeA">Deck A Volume Function:</label>
+                    <textarea id="volumeCodeA" class="code-textarea" placeholder="// Custom volume function for Deck A\nreturn value * 0.01; // Default: convert 0-100 to 0-1">
+// Custom volume function for Deck A
+return value * 0.01; // Default: convert 0-100 to 0-1</textarea>
+                    
+                    <label for="eqCodeA">Deck A EQ Function:</label>
+                    <textarea id="eqCodeA" class="code-textarea" placeholder="// Custom EQ function\nconst frequency = sliderId.includes('high') ? 8000 : sliderId.includes('mid') ? 1000 : 200;\naudioNode.frequency.setValueAtTime(frequency, audioContext.currentTime);\naudioNode.gain.setValueAtTime((value - 50) * 0.3, audioContext.currentTime);">
+// Custom EQ function
+const frequency = sliderId.includes('high') ? 8000 : sliderId.includes('mid') ? 1000 : 200;
+audioNode.frequency.setValueAtTime(frequency, audioContext.currentTime);
+audioNode.gain.setValueAtTime((value - 50) * 0.3, audioContext.currentTime);</textarea>
+                    
+                    <div class="label-customization">
+                        <h4>🏷️ Custom Slider Labels</h4>
+                        <div class="label-inputs">
+                            <div class="label-input-group">
+                                <label>High EQ Label:</label>
+                                <input type="text" id="highEqLabel" class="label-input" placeholder="High" value="High">
+                            </div>
+                            <div class="label-input-group">
+                                <label>Mid EQ Label:</label>
+                                <input type="text" id="midEqLabel" class="label-input" placeholder="Mid" value="Mid">
+                            </div>
+                            <div class="label-input-group">
+                                <label>Low EQ Label:</label>
+                                <input type="text" id="lowEqLabel" class="label-input" placeholder="Low" value="Low">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <label for="effectCodeA">Deck A Effects Function:</label>
+                    <textarea id="effectCodeA" class="code-textarea" placeholder="// Custom effects function\nif (sliderId.includes('reverb')) {\n  // Custom reverb logic\n  return value * 0.02;\n}\nreturn value * 0.01;">
+// Custom effects function
+if (sliderId.includes('reverb')) {
+  // Custom reverb logic
+  return value * 0.02;
+}
+return value * 0.01;</textarea>
+                </div>
+                
+                <div class="code-actions">
+                    <button id="testCode" class="action-btn test-btn">🧪 Test Code</button>
+                    <button id="applyCode" class="action-btn apply-btn">✅ Apply Code</button>
+                    <button id="resetCode" class="action-btn reset-btn">🔄 Reset to Default</button>
+                </div>
+                
+                <div id="codeOutput" class="code-output"></div>
+            </div>
+        </div>
+
+        <div class="main-interface">
+            <!-- Left Deck -->
+            <div class="deck" id="deckA">
+                <div class="deck-header">
+                    <h3>Deck A</h3>
+                    <input type="file" id="loadTrackA" accept="audio/*" class="track-loader">
+                    <label for="loadTrackA" class="load-btn">Load Track</label>
+                </div>
+                
+                <div class="track-info">
+                    <div class="track-title" id="trackTitleA">No track loaded</div>
+                    <div class="track-time">
+                        <span id="currentTimeA">0:00</span> / <span id="durationA">0:00</span>
+                    </div>
+                </div>
+
+                <div class="waveform-container" onclick="djController.seekToPosition('A', event)">
+                    <canvas id="waveformA" class="waveform"></canvas>
+                    <div class="position-indicator" id="positionA"></div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="timeline-scrub">
+                        <label>Timeline Scrub</label>
+                        <input type="range" id="progressA" min="0" max="100" value="0" class="progress-bar">
+                        <div class="timeline-labels">
+                            <span class="timeline-start">0:00</span>
+                            <span class="timeline-end" id="timelineEndA">0:00</span>
+                        </div>
+                    </div>
+                    <div class="live-timestamp">
+                        <label>Live Time</label>
+                        <div class="time-display-live">
+                            <span class="current-live" id="currentLiveA">0:00:00</span>
+                            <span class="separator">|</span>
+                            <span class="remaining-live" id="remainingLiveA">-0:00:00</span>
+                        </div>
+                        <div class="time-percentage">
+                            <span id="percentageA">0%</span> complete
+                        </div>
+                    </div>
+                </div>
+
+                <div class="deck-controls">
+                    <div class="transport-controls">
+                        <button id="cueA" class="cue-btn">CUE</button>
+                        <button id="playA" class="play-btn">▶</button>
+                        <button id="syncA" class="sync-btn">SYNC</button>
+                    </div>
+
+                    <div class="tempo-control">
+                        <label>Tempo</label>
+                        <input type="range" id="tempoA" min="0.5" max="2.0" step="0.01" value="1.0" class="tempo-slider">
+                        <span id="tempoDisplayA">100%</span>
+                    </div>
+                </div>
+
+                <div class="channel-eq">
+                    <div class="eq-control">
+                        <label>High</label>
+                        <input type="range" id="highA" min="0" max="100" value="50" class="eq-slider">
+                        <div class="eq-visual-track"></div>
+                    </div>
+                    <div class="eq-control">
+                        <label>Mid</label>
+                        <input type="range" id="midA" min="0" max="100" value="50" class="eq-slider">
+                        <div class="eq-visual-track"></div>
+                    </div>
+                    <div class="eq-control">
+                        <label>Low</label>
+                        <input type="range" id="lowA" min="0" max="100" value="50" class="eq-slider">
+                        <div class="eq-visual-track"></div>
+                    </div>
+                </div>
+
+                <div class="channel-volume">
+                    <label>Volume</label>
+                    <input type="range" id="volumeA" min="0" max="100" value="75" class="volume-slider">
+                </div>
+            </div>
+
+            <!-- Center Mixer -->
+            <div class="center-mixer">
+                <div class="crossfader-section">
+                    <div class="crossfader-header">
+                        <label>Crossfader</label>
+                        <button id="toggleDeckB" class="deck-toggle-btn">+ DECK B</button>
+                    </div>
+                    <input type="range" id="crossfader" min="0" max="100" value="50" class="crossfader">
+                    <div class="crossfader-labels">
+                        <span>A</span>
+                        <span>B</span>
+                    </div>
+                </div>
+
+                <div class="effects-section">
+                    <h4>Effects</h4>
+                    
+                    <div class="effect-control">
+                        <label>Reverb</label>
+                        <input type="range" id="reverb" min="0" max="100" value="0" class="effect-slider">
+                        <button id="reverbToggle" class="effect-toggle">OFF</button>
+                    </div>
+
+                    <div class="effect-control">
+                        <label>Delay</label>
+                        <input type="range" id="delay" min="0" max="100" value="0" class="effect-slider">
+                        <button id="delayToggle" class="effect-toggle">OFF</button>
+                    </div>
+                </div>
+
+                <div class="bpm-section">
+                    <div class="bpm-display">
+                        <label>BPM A</label>
+                        <span id="bpmA">--</span>
+                    </div>
+                    <button id="autoSync" class="auto-sync-btn">AUTO SYNC</button>
+                    <div class="bpm-display">
+                        <label>BPM B</label>
+                        <span id="bpmB">--</span>
+                    </div>
+                </div>
+
+                <div class="visualizer-section">
+                    <div class="visualizer-controls">
+                        <label>Spectrum Analyzer</label>
+                        <select id="visualizerMode" class="visualizer-mode-select">
+                            <option value="default">Default</option>
+                            <option value="ferrofluid">Ferrofluid</option>
+                            <option value="cymatic">Cymatic</option>
+                        </select>
+                    </div>
+                    <canvas id="spectrumAnalyzer" class="spectrum-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Right Deck -->
+            <div class="deck" id="deckB">
+                <div class="deck-header">
+                    <h3>Deck B</h3>
+                    <input type="file" id="loadTrackB" accept="audio/*" class="track-loader">
+                    <label for="loadTrackB" class="load-btn">Load Track</label>
+                </div>
+                
+                <div class="track-info">
+                    <div class="track-title" id="trackTitleB">No track loaded</div>
+                    <div class="track-time">
+                        <span id="currentTimeB">0:00</span> / <span id="durationB">0:00</span>
+                    </div>
+                </div>
+
+                <div class="waveform-container" onclick="djController.seekToPosition('B', event)">
+                    <canvas id="waveformB" class="waveform"></canvas>
+                    <div class="position-indicator" id="positionB"></div>
+                </div>
+
+                <div class="progress-bar-container">
+                    <div class="timeline-scrub">
+                        <label>Timeline Scrub</label>
+                        <input type="range" id="progressB" min="0" max="100" value="0" class="progress-bar">
+                        <div class="timeline-labels">
+                            <span class="timeline-start">0:00</span>
+                            <span class="timeline-end" id="timelineEndB">0:00</span>
+                        </div>
+                    </div>
+                    <div class="live-timestamp">
+                        <label>Live Time</label>
+                        <div class="time-display-live">
+                            <span class="current-live" id="currentLiveB">0:00:00</span>
+                            <span class="separator">|</span>
+                            <span class="remaining-live" id="remainingLiveB">-0:00:00</span>
+                        </div>
+                        <div class="time-percentage">
+                            <span id="percentageB">0%</span> complete
+                        </div>
+                    </div>
+                </div>
+
+                <div class="deck-controls">
+                    <div class="transport-controls">
+                        <button id="cueB" class="cue-btn">CUE</button>
+                        <button id="playB" class="play-btn">▶</button>
+                        <button id="syncB" class="sync-btn">SYNC</button>
+                    </div>
+
+                    <div class="tempo-control">
+                        <label>Tempo</label>
+                        <input type="range" id="tempoB" min="0.5" max="2.0" step="0.01" value="1.0" class="tempo-slider">
+                        <span id="tempoDisplayB">100%</span>
+                    </div>
+                </div>
+
+                <div class="channel-eq">
+                    <div class="eq-control">
+                        <label>High</label>
+                        <input type="range" id="highB" min="0" max="100" value="50" class="eq-slider">
+                        <div class="eq-visual-track"></div>
+                    </div>
+                    <div class="eq-control">
+                        <label>Mid</label>
+                        <input type="range" id="midB" min="0" max="100" value="50" class="eq-slider">
+                        <div class="eq-visual-track"></div>
+                    </div>
+                    <div class="eq-control">
+                        <label>Low</label>
+                        <input type="range" id="lowB" min="0" max="100" value="50" class="eq-slider">
+                        <div class="eq-visual-track"></div>
+                    </div>
+                </div>
+
+                <div class="channel-volume">
+                    <label>Volume</label>
+                    <input type="range" id="volumeB" min="0" max="100" value="75" class="volume-slider">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
