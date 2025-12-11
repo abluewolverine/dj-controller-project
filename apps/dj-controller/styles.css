@@ -389,12 +389,12 @@ body {
     display: flex;
     align-items: center;
     gap: 6px;
-    padding: 8px 12px;
+    padding: 10px 16px;
     background: var(--button-bg);
     color: var(--color-text);
     border: 2px solid var(--border-color);
-    border-radius: 20px;
-    font-size: 0.8em;
+    border-radius: 24px;
+    font-size: 0.9em;
     font-weight: bold;
     letter-spacing: 1px;
     cursor: pointer;
@@ -418,6 +418,27 @@ body {
 .theme-toggle-btn:hover .theme-icon,
 .code-toggle-btn:hover .code-icon {
     transform: rotate(90deg);
+}
+
+/* Make Interpreter Mode toggle highly visible */
+.code-toggle-btn {
+    background: linear-gradient(135deg, var(--color-primary) 0%, var(--glow-accent) 100%);
+    color: #0a0a0a;
+    border-color: var(--color-primary);
+    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2), 0 0 12px var(--glow-accent);
+}
+
+.code-toggle-btn .code-icon {
+    font-size: 1.1em;
+}
+
+.code-toggle-btn .code-text {
+    font-weight: 800;
+}
+
+.code-toggle-btn:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 2px;
 }
 
 .header-controls {
