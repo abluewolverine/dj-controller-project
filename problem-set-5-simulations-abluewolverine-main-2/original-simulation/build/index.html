@@ -1,1 +1,165 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Simulation React App</title><base href="./" /><script defer="defer" src="./static/js/main.770e66bf.js"></script><link href="./static/css/main.a0598efb.css" rel="stylesheet"></head><body><div id="root"></div></body></html>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Simulation React App</title><base href="./" /><script defer="defer" src="./static/js/main.770e66bf.js"></script><link href="./static/css/main.a0598efb.css" rel="stylesheet">
+<style>
+  /* Replace existing toggle with a single button UI */
+  .guide-mode-toggle, #guide_mode_toggle, #guideToggle, #interpreterToggle, [data-role="guide-toggle"] {
+    position: fixed !important;
+    top: 16px !important;
+    right: 16px !important;
+    z-index: 9999 !important;
+  }
+  /* Hide the visual of the old toggle switch, keep its input available in DOM */
+  .guide-mode-toggle .toggle-switch,
+  #guide_mode_toggle .toggle-switch,
+  #guideToggle .toggle-switch,
+  #interpreterToggle .toggle-switch,
+  [data-role="guide-toggle"] .toggle-switch {
+    visibility: hidden !important;
+    position: absolute !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+  }
+
+  /* New Guide Mode button */
+  #guideModeButton {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 10000;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    background: #111827cc;
+    color: #f8fafc;
+    border: 2px solid #93c5fd;
+    border-radius: 22px;
+    font-size: 14px;
+    font-weight: 700;
+    backdrop-filter: blur(4px);
+    cursor: pointer;
+  }
+  #guideModeButton:hover { background: #1f2937cc; }
+  #guideModeButton.on {
+    background: #6b5bb0; /* accent-2 */
+    border-color: #c4b5fd; /* violet-300 */
+    color: #f5f3ff; /* violet-50 */
+  }
+
+  /* Avoid overlap with fixed button */
+  body { padding-top: 88px; }
+  .container { margin-top: 0; }
+</style>
+</head><body><div id="root"></div>
+<script>
+	// Create a single button to control Guide/Interpreter mode using the existing input
+	(function(){
+		function findGuideInput(){
+			// Look for a checkbox used by the toggle UI
+			return document.querySelector(
+				'.guide-mode-toggle input[type="checkbox"],\
+				 #guide_mode_toggle input[type="checkbox"],\
+				 #guideToggle input[type="checkbox"],\
+				 #interpreterToggle input[type="checkbox"],\
+				 [data-role="guide-toggle"] input[type="checkbox"],\
+				 .toggle-switch input[type="checkbox"]'
+			);
+		}
+
+		function dispatchChange(el){
+			el.dispatchEvent(new Event('input', { bubbles: true }));
+			el.dispatchEvent(new Event('change', { bubbles: true }));
+		}
+
+		function clickOriginalUI(){
+			// If React is listening on label/slider clicks, forward a synthetic click
+			const slider = document.querySelector('.guide-mode-toggle .toggle-slider,\
+																					 #guide_mode_toggle .toggle-slider,\
+																					 #guideToggle .toggle-slider,\
+																					 #interpreterToggle .toggle-slider,\
+																					 [data-role="guide-toggle"] .toggle-slider');
+			if (slider){
+				slider.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				return true;
+			}
+			const label = document.querySelector('.guide-mode-toggle .toggle-label,\
+																					#guide_mode_toggle .toggle-label,\
+																					#guideToggle .toggle-label,\
+																					#interpreterToggle .toggle-label,\
+																					[data-role="guide-toggle"] .toggle-label');
+			if (label){
+				label.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+				return true;
+			}
+			return false;
+		}
+
+		function ensureButton(){
+			let btn = document.getElementById('guideModeButton');
+			if (!btn){
+				btn = document.createElement('button');
+				btn.id = 'guideModeButton';
+				btn.type = 'button';
+				btn.setAttribute('aria-label', 'Guide Mode');
+				btn.innerHTML = '<span>Guide Mode</span>';
+				document.body.appendChild(btn);
+			}
+			return btn;
+		}
+
+		function syncButton(btn, input){
+			const on = !!(input && input.checked);
+			btn.classList.toggle('on', on);
+			btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+		}
+
+		function init(){
+			const input = findGuideInput();
+			const btn = ensureButton();
+			syncButton(btn, input);
+			btn.addEventListener('click', function(){
+				// Prefer to click the original UI so any bound handlers run
+				const clicked = clickOriginalUI();
+				const target = findGuideInput();
+				if (target){
+					// Sync state after click; if original UI wasn't found, toggle manually
+					if (!clicked) {
+						target.checked = !target.checked;
+						dispatchChange(target);
+					}
+					syncButton(btn, target);
+				} else if (!clicked) {
+					// Visual fallback only
+					btn.classList.toggle('on');
+					btn.setAttribute('aria-pressed', btn.classList.contains('on') ? 'true' : 'false');
+				}
+			});
+
+			// Keep button state synchronized even if React changes the checkbox elsewhere
+			const target2 = findGuideInput();
+			if (target2){
+				const mo = new MutationObserver(() => syncButton(btn, target2));
+				mo.observe(target2, { attributes: true, attributeFilter: ['checked', 'aria-checked'] });
+			}
+		}
+
+		// Initialize after React app mounts
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', init);
+		} else {
+			setTimeout(init, 0);
+		}
+	})();
+</script>
+<script>
+  // Optional: keep the original container positioned but invisible, so layout stays stable
+  (function(){
+    const container = document.querySelector('.guide-mode-toggle, #guide_mode_toggle, #guideToggle, #interpreterToggle, [data-role="guide-toggle"]');
+    if (!container) return;
+    container.style.position = container.style.position || 'fixed';
+    container.style.top = container.style.top || '16px';
+    container.style.right = container.style.right || '16px';
+    container.style.zIndex = container.style.zIndex || '9999';
+  })();
+</script>
+	</body></html>
